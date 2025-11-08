@@ -7,33 +7,52 @@ class GildedRose(object):
 
     def update_quality(self):
         for item in self.items:
-            if item.name != "Aged Brie" and item.name != "Backstage passes to a TAFKAL80ETC concert":
-                if item.quality > 0:
-                    if item.name != "Sulfuras, Hand of Ragnaros":
-                        item.quality = item.quality - 1
-            else:
-                if item.quality < 50:
-                    item.quality = item.quality + 1
-                    if item.name == "Backstage passes to a TAFKAL80ETC concert":
-                        if item.sell_in < 11:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-                        if item.sell_in < 6:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-            if item.name != "Sulfuras, Hand of Ragnaros":
-                item.sell_in = item.sell_in - 1
-            if item.sell_in < 0:
-                if item.name != "Aged Brie":
-                    if item.name != "Backstage passes to a TAFKAL80ETC concert":
-                        if item.quality > 0:
-                            if item.name != "Sulfuras, Hand of Ragnaros":
-                                item.quality = item.quality - 1
-                    else:
-                        item.quality = item.quality - item.quality
-                else:
-                    if item.quality < 50:
-                        item.quality = item.quality + 1
+            self.update_single_item_quality(item)
+
+    def update_single_item_quality(self, item):
+        if item.name == "Sulfuras, Hand of Ragnaros":
+            return #sulfuras never changes
+    
+        self.decrease_sell_in(item)
+    
+        if item.name == "Aged Brie":
+            self.update_aged_brie(item)
+        elif item.name == "Backstage passes to a TAFKAL80ETC concert":
+            self.update_backstage_pass(item)
+        else:
+            self.update_normal_item(item)
+
+    def decrease_sell_in(self, item):
+        if item.name != "Sulfuras, Hand of Ragnaros":#by mistake
+            item.sell_in -= 1
+
+    def update_aged_brie(self, item):
+        self.increase_quality(item)#aged brie increases in quality over time
+        if item.sell_in < 0:
+            self.increase_quality(item)#aged brie increases twice after expiration date
+
+    def update_backstage_pass(self, item):
+        self.increase_quality(item)#backstage passes increase in quality when concert is about to happen
+    
+        if item.sell_in < 10:#backstage passes increase in quality extra when concert is within 10 days
+            self.increase_quality(item)
+        if item.sell_in < 5:#backstage passes increase in quality a lot when concert is within 5 days
+            self.increase_quality(item)
+        if item.sell_in < 0:#backstage passes is useless after the concert
+            item.quality = 0
+
+    def update_normal_item(self, item):
+        self.decrease_quality(item)
+        if item.sell_in < 0:
+            self.decrease_quality(item)
+
+    def increase_quality(self, item):
+        if item.quality < 50:#quality capped at 50
+            item.quality += 1
+
+    def decrease_quality(self, item):
+        if item.quality > 0:#quality can't be below 0
+            item.quality -= 1
 
 
 class Item:
